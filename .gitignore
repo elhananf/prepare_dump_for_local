@@ -22,3 +22,6 @@ Cargo.lock
 
 # For Mac OS
 .DS_Store
+
+# Test files
+testing-*.sql

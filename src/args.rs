@@ -11,7 +11,7 @@ pub struct Opt {
     #[structopt(parse(from_os_str))]
     pub input: PathBuf,
 
-    /// Output file, stdout if not present
+    /// Output file
     #[structopt(parse(from_os_str))]
     pub output: PathBuf,
 }

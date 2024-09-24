@@ -1,11 +1,11 @@
 use structopt::StructOpt;
 
 mod args;
+mod prepare;
 
 fn main() {
     let opt = args::Opt::from_args();
     let args::Opt { input, output } = &opt;
 
-    println!("input: {}", input.to_str().unwrap());
-    println!("output: {}", output.to_str().unwrap());
+    prepare::prepare_dump_file(input, output);
 }
