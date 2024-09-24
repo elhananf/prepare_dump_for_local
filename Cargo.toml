@@ -1,0 +1,6 @@
+[package]
+name = "prepare_dump_for_local"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
