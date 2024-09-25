@@ -40,9 +40,23 @@ jobs:
       - name: Install cargo-release
         run: cargo install cargo-release
 
-      # Create GitHub release without tagging or pushing (since the tag already exists)
+      # Check if the version in Cargo.toml matches the tag
+      - name: Verify version matches tag
+        id: check_version
+        run: |
+          VERSION=$(grep '^version' Cargo.toml | sed -E 's/version = "(.*)"/\1/')
+          TAG=${{ github.ref }}
+          TAG_VERSION=${TAG/refs\/tags\/v/}
+          if [ "$VERSION" != "$TAG_VERSION" ]; then
+            echo "Version mismatch: Cargo.toml version ($VERSION) does not match tag version ($TAG_VERSION)."
+            exit 1
+          else
+            echo "Version matches tag: $VERSION"
+          fi
+
+      # Create GitHub release (skip publishing and tagging since the tag already exists)
       - name: Create GitHub Release
-        run: cargo release --no-publish --no-tag --no-push --execute --no-confirm
+        run: cargo release --no-publish --no-tag --no-confirm
 
   build:
     name: Build for Multiple Platforms
