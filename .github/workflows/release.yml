@@ -45,11 +45,6 @@ jobs:
       - name: Install cargo-release
         run: cargo install cargo-release
 
-      # Update the version in Cargo.toml
-      - name: Update version in Cargo.toml
-        run: |
-          sed -i "s/^version = \".*\"/version = \"${{ github.event.inputs.version }}\"/" Cargo.toml
-
       # Create a new tag
       - name: Create new tag
         run: |
