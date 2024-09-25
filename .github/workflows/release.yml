@@ -1,9 +1,7 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - "v*.*.*" # This triggers the workflow when a version tag is pushed
+  workflow_dispatch: # This allows the workflow to be triggered manually
 
 jobs:
   release:
@@ -11,21 +9,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the repository with full history to avoid detached HEAD
+      # Checkout the repository with full history
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Ensure full history is fetched
-          ref: ${{ github.ref }} # Checkout the tag that triggered the workflow
 
-      # Get the branch name associated with the tag (assumes tag was created on a branch)
+      # Get the branch name associated with the latest tag
       - name: Find branch from tag
         id: get_branch
         run: |
-          BRANCH=$(git branch -r --contains ${{ github.sha }} | grep -v '\->' | head -n 1 | sed 's/ *origin\///')
+          BRANCH=$(git branch -r --contains $(git describe --tags --abbrev=0) | grep -v '\->' | head -n 1 | sed 's/ *origin\///')
           echo "branch_name=$BRANCH" >> $GITHUB_ENV
 
-      # Switch to the branch (since we're currently in detached HEAD)
+      # Switch to the branch
       - name: Checkout branch
         run: git checkout ${{ env.branch_name }}
 
@@ -40,21 +37,25 @@ jobs:
       - name: Install cargo-release
         run: cargo install cargo-release
 
-      # Check if the version in Cargo.toml matches the tag
-      - name: Verify version matches tag
-        id: check_version
+      # Prompt for the new version
+      - name: Set new version
+        id: set_version
         run: |
-          VERSION=$(grep '^version' Cargo.toml | sed -E 's/version = "(.*)"/\1/')
-          TAG=${{ github.ref }}
-          TAG_VERSION=${TAG/refs\/tags\/v/}
-          if [ "$VERSION" != "$TAG_VERSION" ]; then
-            echo "Version mismatch: Cargo.toml version ($VERSION) does not match tag version ($TAG_VERSION)."
-            exit 1
-          else
-            echo "Version matches tag: $VERSION"
-          fi
+          read -p "Enter the new version (e.g., 0.1.0): " NEW_VERSION
+          echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
 
-      # Create GitHub release (skip publishing and tagging since the tag already exists)
+      # Update the version in Cargo.toml
+      - name: Update version in Cargo.toml
+        run: |
+          sed -i "s/^version = \".*\"/version = \"${{ env.new_version }}\"/" Cargo.toml
+
+      # Create a new tag
+      - name: Create new tag
+        run: |
+          git tag "v${{ env.new_version }}"
+          git push origin "v${{ env.new_version }}"
+
+      # Create GitHub release
       - name: Create GitHub Release
         run: cargo release --no-publish --no-tag --no-confirm --execute
 
@@ -66,12 +67,11 @@ jobs:
         platform: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
-      # Checkout the repository with full history to avoid detached HEAD
+      # Checkout the repository with full history
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref: ${{ github.ref }}
 
       # Switch to the branch associated with the tag
       - name: Checkout branch
