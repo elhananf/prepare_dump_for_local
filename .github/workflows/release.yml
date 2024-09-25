@@ -45,15 +45,9 @@ jobs:
       - name: Install cargo-release
         run: cargo install cargo-release
 
-      # Create a new tag
-      - name: Create new tag
-        run: |
-          git tag "v${{ github.event.inputs.version }}"
-          git push origin "v${{ github.event.inputs.version }}"
-
       # Create GitHub release
       - name: Create GitHub Release
-        run: cargo release --no-publish --no-tag --no-confirm --execute
+        run: cargo release --no-publish --no-confirm --execute
 
   build:
     name: Build for Multiple Platforms
