@@ -28,7 +28,7 @@ jobs:
 
       # Run cargo release to create GitHub release
       - name: Create GitHub Release
-        run: cargo release --tag-version
+        run: cargo release --no-publish --no-tag
 
   build:
     name: Build for Multiple Platforms
