@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - "v*.*.*" # This triggers the workflow for version tags
+      - "v*.*.*" # This triggers the workflow when a version tag is pushed
 
 jobs:
   release:
@@ -11,12 +11,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the repository with the correct branch reference
+      # Checkout the repository with full history to avoid detached HEAD
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # Fetch full history to avoid detached HEAD issues
-          ref: ${{ github.ref }} # Checkout the exact tag that triggered the workflow
+          fetch-depth: 0 # Ensure full history is fetched
+          ref: ${{ github.ref }} # Checkout the tag that triggered the workflow
+
+      # Get the branch name associated with the tag (assumes tag was created on a branch)
+      - name: Find branch from tag
+        id: get_branch
+        run: |
+          BRANCH=$(git branch -r --contains ${{ github.sha }} | grep -v '\->' | head -n 1 | sed 's/ *origin\///')
+          echo "branch_name=$BRANCH" >> $GITHUB_ENV
+
+      # Switch to the branch (since we're currently in detached HEAD)
+      - name: Checkout branch
+        run: git checkout ${{ env.branch_name }}
 
       # Set up Rust environment
       - name: Set up Rust
@@ -41,12 +52,16 @@ jobs:
         platform: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
-      # Checkout the repository with the correct branch reference
+      # Checkout the repository with full history to avoid detached HEAD
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # Fetch full history to avoid detached HEAD issues
+          fetch-depth: 0
           ref: ${{ github.ref }}
+
+      # Switch to the branch associated with the tag
+      - name: Checkout branch
+        run: git checkout ${{ env.branch_name }}
 
       # Set up Rust environment
       - name: Set up Rust
