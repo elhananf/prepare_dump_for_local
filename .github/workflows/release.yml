@@ -42,7 +42,7 @@ jobs:
 
       # Create GitHub release without tagging or pushing (since the tag already exists)
       - name: Create GitHub Release
-        run: cargo release --no-publish --no-tag --no-push --execute
+        run: cargo release --no-publish --no-tag --no-push --execute --no-confirm
 
   build:
     name: Build for Multiple Platforms
