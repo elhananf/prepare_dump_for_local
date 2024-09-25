@@ -57,7 +57,7 @@ jobs:
       - name: Archive binary
         if: startsWith(matrix.platform, 'ubuntu') || startsWith(matrix.platform, 'macos') || startsWith(matrix.platform, 'windows')
         run: |
-          zip -j binary-${{ matrix.platform }} target/release/my_binary
+          zip -j binary-${{ matrix.platform }} target/release/prepare_dump_for_local
 
       # Upload the binary as an artifact
       - name: Upload artifact
