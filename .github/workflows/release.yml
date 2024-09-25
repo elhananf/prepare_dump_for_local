@@ -1,7 +1,12 @@
 name: Release
 
 on:
-  workflow_dispatch: # This allows the workflow to be triggered manually
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "New version number (e.g., 0.1.0)"
+        required: true
+        default: "0.1.0"
 
 jobs:
   release:
@@ -37,23 +42,16 @@ jobs:
       - name: Install cargo-release
         run: cargo install cargo-release
 
-      # Prompt for the new version
-      - name: Set new version
-        id: set_version
-        run: |
-          read -p "Enter the new version (e.g., 0.1.0): " NEW_VERSION
-          echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
-
       # Update the version in Cargo.toml
       - name: Update version in Cargo.toml
         run: |
-          sed -i "s/^version = \".*\"/version = \"${{ env.new_version }}\"/" Cargo.toml
+          sed -i "s/^version = \".*\"/version = \"${{ github.event.inputs.version }}\"/" Cargo.toml
 
       # Create a new tag
       - name: Create new tag
         run: |
-          git tag "v${{ env.new_version }}"
-          git push origin "v${{ env.new_version }}"
+          git tag "v${{ github.event.inputs.version }}"
+          git push origin "v${{ github.event.inputs.version }}"
 
       # Create GitHub release
       - name: Create GitHub Release
